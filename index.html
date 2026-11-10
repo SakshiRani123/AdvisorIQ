@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>US Financial Advisor Intelligence Dashboard | Barron's Directory</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.4);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.7);
+    }
+    .glass-card {
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 0.2; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(1.05); }
+    }
+    .ambient-glow {
+      animation: pulse-slow 8s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-100 min-h-screen font-sans antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- Ambient Background Glows -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl ambient-glow"></div>
+    <div class="absolute top-1/3 -right-40 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl ambient-glow" style="animation-delay: 3s;"></div>
+    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl ambient-glow" style="animation-delay: 5s;"></div>
+  </div>
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 bg-[#0f172a]/90 border-b border-slate-800/90 glass-card">
+    <div class="max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20 ring-1 ring-white/20">
+          <i data-lucide="layers" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+              Barron's Advisor Intelligence
+            </h1>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> Complete 2,042 Directory
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">
+            Part-2 Sales Prospecting, Geographic Reach & Digital Readiness Platform
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Preset Filter Buttons (Uniqueness Feature) -->
+      <div class="hidden xl:flex items-center space-x-1.5 bg-slate-900/80 p-1 rounded-xl border border-slate-800 text-xs">
+        <span class="text-slate-500 px-2 text-[11px] font-medium flex items-center">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 mr-1 text-amber-400"></i> Smart Views:
+        </span>
+        <button onclick="applyPreset('all')" id="presetAll" class="px-2.5 py-1 rounded-lg text-slate-300 hover:text-white bg-slate-800 font-semibold shadow-sm transition">
+          All (2,042)
+        </button>
+        <button onclick="applyPreset('ready')" id="presetReady" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+          🎯 Outreach Ready (Email+Phone)
+        </button>
+        <button onclick="applyPreset('mega')" id="presetMega" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+          💎 Mega-Cap ($10B+)
+        </button>
+        <button onclick="applyPreset('planning')" id="presetPlanning" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+          📋 Financial Planners
+        </button>
+      </div>
+
+      <!-- Global Actions -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- Search bar -->
+        <div class="relative w-48 sm:w-64">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Search name, firm, city..." 
+            class="w-full bg-slate-900/90 text-xs text-slate-200 pl-9 pr-8 py-2 rounded-lg border border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 placeholder-slate-500 transition-all shadow-inner"
+          />
+          <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white" title="Clear search">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Reset Button -->
+        <button 
+          id="resetFiltersBtn"
+          class="flex items-center space-x-1.5 px-3 py-2 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white rounded-lg border border-slate-700 transition active:scale-95"
+          title="Reset all filters"
+        >
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-blue-400"></i>
+          <span class="hidden md:inline">Reset</span>
+        </button>
+
+        <!-- Export CSV Button -->
+        <button 
+          id="exportCsvBtn"
+          class="flex items-center space-x-1.5 px-3 py-2 text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg shadow-lg shadow-blue-600/25 transition active:scale-95 ring-1 ring-white/10"
+          title="Export filtered records to CSV"
+        >
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Export CSV</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5 relative z-10">
+
+    <!-- KPI Metric Cards Grid -->
+    <section aria-label="Dynamic Summary KPIs">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+        
+        <!-- Total Advisor Firms -->
+        <div class="bg-gradient-to-b from-slate-900/90 to-slate-900/60 p-3.5 rounded-xl border border-slate-800 hover:border-slate-700 transition shadow-lg relative overflow-hidden group">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Advisors</span>
+            <div class="p-1 rounded-lg bg-blue-500/10 text-blue-400">
+              <i data-lucide="database" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-bold tracking-tight text-white font-mono" id="kpiTotal">2,042</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Part-1 baseline</div>
+        </div>
+
+        <!-- Filtered Advisor Count -->
+        <div class="bg-gradient-to-b from-blue-950/40 via-slate-900/90 to-slate-900/60 p-3.5 rounded-xl border border-blue-500/40 hover:border-blue-500/60 transition shadow-lg relative overflow-hidden group">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-bold text-blue-300 uppercase tracking-wider">Filtered Count</span>
+            <div class="p-1 rounded-lg bg-blue-500/20 text-blue-300">
+              <i data-lucide="filter" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-bold tracking-tight text-blue-400 font-mono" id="kpiFiltered">2,042</div>
+          <div class="text-[10px] text-blue-400/80 mt-0.5 font-medium" id="kpiFilteredPct">100% of dataset</div>
+        </div>
+
+        <!-- Number of Unique States -->
+        <div class="bg-gradient-to-b from-slate-900/90 to-slate-900/60 p-3.5 rounded-xl border border-slate-800 hover:border-slate-700 transition shadow-lg relative overflow-hidden group">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Unique States</span>
+            <div class="p-1 rounded-lg bg-indigo-500/10 text-indigo-400">
+              <i data-lucide="map" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-bold tracking-tight text-white font-mono" id="kpiStates">-</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Geographic span</div>
+        </div>
+
+        <!-- Number of Unique Cities -->
+        <div class="bg-gradient-to-b from-slate-900/90 to-slate-900/60 p-3.5 rounded-xl border border-slate-800 hover:border-slate-700 transition shadow-lg relative overflow-hidden group">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Unique Cities</span>
+            <div class="p-1 rounded-lg bg-violet-500/10 text-violet-400">
+              <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-bold tracking-tight text-white font-mono" id="kpiCities">-</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Metro territories</div>
+        </div>
+
+        <!-- Number of Unique ZIP Codes -->
+        <div class="bg-gradient-to-b from-slate-900/90 to-slate-900/60 p-3.5 rounded-xl border border-slate-800 hover:border-slate-700 transition shadow-lg relative overflow-hidden group">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Unique ZIPs</span>
+            <div class="p-1 rounded-lg bg-pink-500/10 text-pink-400">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-bold tracking-tight text-white font-mono" id="kpiZips">-</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Postal coverage</div>
+        </div>
+
+        <!-- Firms with Website -->
+        <div class="bg-gradient-to-b from-slate-900/90 to-slate-900/60 p-3.5 rounded-xl border border-slate-800 hover:border-slate-700 transition shadow-lg relative overflow-hidden group">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">With Website</span>
+            <div class="p-1 rounded-lg bg-emerald-500/10 text-emerald-400">
+              <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-bold tracking-tight text-emerald-400 font-mono" id="kpiWebsites">-</div>
+          <div class="text-[10px] text-emerald-400/80 mt-0.5" id="kpiWebsitesPct">-</div>
+        </div>
+
+        <!-- Firms with Emails -->
+        <div class="bg-gradient-to-b from-slate-900/90 to-slate-900/60 p-3.5 rounded-xl border border-slate-800 hover:border-slate-700 transition shadow-lg relative overflow-hidden group">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">With Emails</span>
+            <div class="p-1 rounded-lg bg-cyan-500/10 text-cyan-400">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-bold tracking-tight text-cyan-400 font-mono" id="kpiEmails">-</div>
+          <div class="text-[10px] text-cyan-400/80 mt-0.5" id="kpiEmailsPct">-</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Comprehensive Filter Panel -->
+    <section class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-xl glass-card">
+      <div class="flex items-center justify-between pb-3.5 border-b border-slate-800 mb-4">
+        <div class="flex items-center space-x-2.5">
+          <div class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
+            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+          </div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-200">
+            Multi-Dimensional Filter Controls (All Header Fields)
+          </h2>
+        </div>
+        <div class="text-xs text-slate-400 flex items-center space-x-3">
+          <span id="activeFilterBadge" class="hidden px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium">
+            0 active filters
+          </span>
+          <button id="clearAllFiltersLink" class="text-blue-400 hover:text-blue-300 underline font-medium cursor-pointer hidden">
+            Clear all filters
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+        
+        <!-- Filter 1: State -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+            <i data-lucide="map" class="w-3 h-3 mr-1 text-slate-500"></i> State
+          </label>
+          <select id="filterState" class="w-full bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+            <option value="">All States</option>
+          </select>
+        </div>
+
+        <!-- Filter 2: City -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+            <i data-lucide="building-2" class="w-3 h-3 mr-1 text-slate-500"></i> City
+          </label>
+          <select id="filterCity" class="w-full bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+            <option value="">All Cities</option>
+          </select>
+        </div>
+
+        <!-- Filter 3: Account Minimum -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+            <i data-lucide="dollar-sign" class="w-3 h-3 mr-1 text-slate-500"></i> Account Minimum
+          </label>
+          <select id="filterAccountMin" class="w-full bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+            <option value="">All Minimums</option>
+          </select>
+        </div>
+
+        <!-- Filter 4: Typical Account Size -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+            <i data-lucide="pie-chart" class="w-3 h-3 mr-1 text-slate-500"></i> Typ. Account Size
+          </label>
+          <select id="filterTypicalAccount" class="w-full bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+            <option value="">All Sizes</option>
+          </select>
+        </div>
+
+        <!-- Filter 5: Financial Planning -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+            <i data-lucide="check-square" class="w-3 h-3 mr-1 text-slate-500"></i> Financial Planning
+          </label>
+          <select id="filterFinPlanning" class="w-full bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+            <option value="">All</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+
+        <!-- Filter 6: Website Presence -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+            <i data-lucide="globe" class="w-3 h-3 mr-1 text-slate-500"></i> Website Status
+          </label>
+          <select id="filterWebsite" class="w-full bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+            <option value="">All</option>
+            <option value="yes">Has Website</option>
+            <option value="no">Missing Website</option>
+          </select>
+        </div>
+
+        <!-- Filter 7: Email Presence -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+            <i data-lucide="mail" class="w-3 h-3 mr-1 text-slate-500"></i> Email Status
+          </label>
+          <select id="filterEmail" class="w-full bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+            <option value="">All</option>
+            <option value="yes">Has Email</option>
+            <option value="no">Missing Email</option>
+          </select>
+        </div>
+
+        <!-- Filter 8: AUM Firm Tier (Uniqueness Feature) -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+            <i data-lucide="gem" class="w-3 h-3 mr-1 text-amber-400"></i> Practice AUM Tier
+          </label>
+          <select id="filterTier" class="w-full bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition font-semibold text-amber-300">
+            <option value="" class="text-slate-200">All Tiers</option>
+            <option value="Mega-Cap ($10B+)">Mega-Cap ($10B+)</option>
+            <option value="Tier-1 ($2B-$10B)">Tier-1 ($2B-$10B)</option>
+            <option value="Mid-Market ($500M-$2B)">Mid-Market ($500M-$2B)</option>
+            <option value="Boutique (<$500M)">Boutique (&lt;$500M)</option>
+          </select>
+        </div>
+
+        <!-- Filter 9: Client Base -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+            <i data-lucide="users" class="w-3 h-3 mr-1 text-slate-500"></i> Client Base
+          </label>
+          <select id="filterClientBase" class="w-full bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+            <option value="">All Client Bases</option>
+          </select>
+        </div>
+
+        <!-- Filter 10: Phone Presence -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+            <i data-lucide="phone" class="w-3 h-3 mr-1 text-slate-500"></i> Phone Available
+          </label>
+          <select id="filterPhone" class="w-full bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+            <option value="">All</option>
+            <option value="yes">Has Phone</option>
+            <option value="no">No Phone</option>
+          </select>
+        </div>
+
+        <!-- Filter 11: LinkedIn -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+            <i data-lucide="share-2" class="w-3 h-3 mr-1 text-slate-500"></i> LinkedIn Profile
+          </label>
+          <select id="filterLinkedin" class="w-full bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+            <option value="">All</option>
+            <option value="yes">Has LinkedIn</option>
+            <option value="no">No LinkedIn</option>
+          </select>
+        </div>
+
+        <!-- Filter 12: Team / Firm Name -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+            <i data-lucide="briefcase" class="w-3 h-3 mr-1 text-slate-500"></i> Top Firm / Team
+          </label>
+          <select id="filterFirm" class="w-full bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+            <option value="">All Firms</option>
+          </select>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Visual Analytics / Charts Row -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      
+      <!-- Chart 1: Top 10 States -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl glass-card">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-400"></i>
+            <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Top 10 States Coverage</h3>
+          </div>
+          <span class="text-[10px] text-slate-500">Filtered data</span>
+        </div>
+        <div class="h-60 relative">
+          <canvas id="stateChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 2: Practice AUM Tiers -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl glass-card">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="gem" class="w-4 h-4 text-amber-400"></i>
+            <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Practice Scale (AUM Tiers)</h3>
+          </div>
+          <span class="text-[10px] text-slate-500">Capital power</span>
+        </div>
+        <div class="h-60 relative flex items-center justify-center">
+          <canvas id="tierChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 3: Outreach Readiness Channels -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl glass-card">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="contact-round" class="w-4 h-4 text-emerald-400"></i>
+            <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Sales Outreach Readiness</h3>
+          </div>
+          <span class="text-[10px] text-slate-500">Channel count</span>
+        </div>
+        <div class="h-60 relative flex items-center justify-center">
+          <canvas id="contactChart"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Detailed Advisor Listing Section -->
+    <section class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl overflow-hidden glass-card">
+      
+      <!-- Table Controls Bar -->
+      <div class="p-4 border-b border-slate-800/90 flex flex-wrap items-center justify-between gap-3 bg-slate-900/40">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+            <i data-lucide="list-filter" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-slate-100">Detailed Advisor Listings</h2>
+            <p class="text-xs text-slate-400">
+              Showing <span id="showingStart" class="text-blue-400 font-semibold">1</span> - 
+              <span id="showingEnd" class="text-blue-400 font-semibold">25</span> of 
+              <span id="showingTotal" class="text-blue-400 font-semibold">2,042</span> matching advisors
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <!-- Page size selector with "All" option -->
+          <div class="flex items-center space-x-2">
+            <label class="text-xs text-slate-400 font-medium">Show Per Page:</label>
+            <select id="pageSizeSelect" class="bg-slate-950 text-slate-200 text-xs rounded-lg border border-slate-700/80 px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none font-semibold">
+              <option value="15">15</option>
+              <option value="25" selected>25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="all">🌟 All (2,042)</option>
+            </select>
+          </div>
+
+          <!-- Quick view mode switcher -->
+          <div class="flex items-center bg-slate-950 p-1 rounded-lg border border-slate-800">
+            <button id="viewTableBtn" class="px-2.5 py-1 text-xs rounded-md bg-blue-600 text-white font-medium shadow transition">
+              <i data-lucide="table" class="w-3.5 h-3.5 inline mr-1"></i> Table
+            </button>
+            <button id="viewCardsBtn" class="px-2.5 py-1 text-xs rounded-md text-slate-400 hover:text-white transition">
+              <i data-lucide="layout-grid" class="w-3.5 h-3.5 inline mr-1"></i> Cards
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table View -->
+      <div id="tableViewWrapper" class="overflow-x-auto max-h-[720px] overflow-y-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="sticky top-0 bg-[#0f172a] shadow-md z-20">
+            <tr class="text-slate-400 uppercase font-bold text-[10px] tracking-wider border-b border-slate-800">
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-slate-200 transition" onclick="handleSort('name')">
+                <div class="flex items-center space-x-1">
+                  <span>Advisor / Title</span>
+                  <i data-lucide="chevrons-up-down" class="w-3 h-3 text-slate-500"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-slate-200 transition" onclick="handleSort('team')">
+                <div class="flex items-center space-x-1">
+                  <span>Team / Firm</span>
+                  <i data-lucide="chevrons-up-down" class="w-3 h-3 text-slate-500"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-slate-200 transition" onclick="handleSort('state')">
+                <div class="flex items-center space-x-1">
+                  <span>Location (City, ST)</span>
+                  <i data-lucide="chevrons-up-down" class="w-3 h-3 text-slate-500"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-slate-200 transition" onclick="handleSort('aum_num')">
+                <div class="flex items-center space-x-1">
+                  <span>Team Assets / Tier</span>
+                  <i data-lucide="chevrons-up-down" class="w-3 h-3 text-slate-500"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3 px-4">Account Min</th>
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-slate-200 transition" onclick="handleSort('lead_score')" title="Outreach Score based on contact availability">
+                <div class="flex items-center space-x-1">
+                  <span>Lead Score</span>
+                  <i data-lucide="chevrons-up-down" class="w-3 h-3 text-amber-400"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3 px-4 text-center">Channels</th>
+              <th scope="col" class="py-3 px-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="advisorTableBody" class="divide-y divide-slate-800/50 font-normal">
+            <!-- Injected by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Card View -->
+      <div id="cardsViewWrapper" class="hidden p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 max-h-[750px] overflow-y-auto">
+        <!-- Injected by JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden py-16 text-center">
+        <div class="w-16 h-16 mx-auto rounded-full bg-slate-800/80 flex items-center justify-center text-slate-500 mb-3">
+          <i data-lucide="search-x" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-base font-semibold text-slate-300">No matching advisors found</h3>
+        <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+          Loosen your filter criteria or click below to reset.
+        </p>
+        <button onclick="resetAllFilters()" class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow transition">
+          Clear All Filters
+        </button>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div id="paginationBar" class="p-3.5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-950/80">
+        <div class="text-xs text-slate-400">
+          Page <span id="currentPageNum" class="font-bold text-slate-200">1</span> of 
+          <span id="totalPagesNum" class="font-bold text-slate-200">1</span>
+          <span id="allModeNotice" class="hidden ml-2 text-emerald-400 font-semibold">(Displaying all records on one single page)</span>
+        </div>
+        
+        <div class="flex items-center space-x-1 sm:space-x-1.5" id="paginationControls">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Modal for Advisor Profile Dossier -->
+  <div id="detailModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+      
+      <!-- Modal Header -->
+      <div class="sticky top-0 bg-slate-900/95 backdrop-blur p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between z-10">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center">
+            <i data-lucide="user" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="modalName" class="text-base font-bold text-white">Advisor Details</h3>
+            <p id="modalTitle" class="text-xs text-slate-400"></p>
+          </div>
+        </div>
+        <button id="closeModalBtn" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 sm:p-6 space-y-5 text-xs text-slate-300" id="modalBody">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="sticky bottom-0 bg-slate-950 p-3.5 border-t border-slate-800 flex items-center justify-between">
+        <span class="text-[11px] text-slate-500">Source: Part-1 Barron's Directory</span>
+        <button onclick="closeModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium rounded-lg transition">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-8 py-6 border-t border-slate-800/80 mt-10 text-center text-xs text-slate-500">
+    <p>Part-2 Dashboard Creation • Barron's US Financial Advisor Intelligence • Ready for GitHub Pages deployment</p>
+  </footer>
+
+  <!-- Load Data -->
+  <script src="advisors_data.js"></script>
+  <!-- Load Main Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
